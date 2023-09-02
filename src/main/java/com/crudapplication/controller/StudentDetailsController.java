@@ -1,6 +1,7 @@
 package com.crudapplication.controller;
 
 import com.crudapplication.dto.GetStudents;
+import com.crudapplication.exception.NotFoundException;
 import com.crudapplication.model.StudentDetails;
 import com.crudapplication.repository.StudentDetailsRepository;
 import com.crudapplication.services.StudentService;
@@ -102,27 +103,29 @@ public class StudentDetailsController {
    * @return ResponseEntity
    */
   @GetMapping("/students/{id}")
-  public ResponseEntity<StudentDetails> getStudentsById(
-    @PathVariable("id") long id
+  public ResponseEntity getStudentsById(
+          @PathVariable("id") long id
   ) {
     try {
       // check if Student exist in database
       StudentDetails stdObj = getStudRecord(id);
 
-      if (stdObj != null) {
-        return new ResponseEntity<>(stdObj, HttpStatus.OK);
-      }
+      if (stdObj == null) {
+        throw new NotFoundException("Student", "Id", id);
 
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    } catch (Exception e) {
+      }
+      return new ResponseEntity<>(stdObj, HttpStatus.OK);
+
+    } catch (NotFoundException e) {
+      return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+    }
+    catch (Exception e) {
       return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   /**
-   * Get the Student by id
-   *
-   * @param id
+   * POST
    * @return ResponseEntity
    */
   @PostMapping("/students")
